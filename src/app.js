@@ -1,15 +1,21 @@
 require('dotenv').config();
-const prefix = '.bybot$';
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
 const client = new Discord.Client();
-const queue = new Map();
+
+const {
+	prefix,
+	token,
+} = require('./configuration/config.json');
+
 const validUrlPrefixes = [
     "https://www.youtube.com",
     "http://www.youtube.com",
     "www.youtube.com",
     "youtube.com"
 ]
+
+const queue = new Map();
 
 client.once("ready", () => {
   console.log("Ready!");
@@ -140,4 +146,4 @@ function play(guild, song) {
   serverQueue.textChannel.send(`Start playing: **${song.title}**`);
 }
 
-client.login(process.env.TOKEN);
+client.login(token);
