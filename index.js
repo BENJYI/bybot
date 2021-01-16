@@ -4,6 +4,12 @@ const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
 const client = new Discord.Client();
 const queue = new Map();
+const validUrlPrefixes = [
+    "https://www.youtube.com",
+    "http://www.youtube.com",
+    "www.youtube.com",
+    "youtube.com"
+]
 
 client.once("ready", () => {
   console.log("Ready!");
@@ -38,7 +44,7 @@ client.on("message", async message => {
 });
 
 async function execute(message, serverQueue) {
-  const args = message.content.split(" ");
+  const args = message.content.split(/[ ]+/);
 
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel)
@@ -52,7 +58,12 @@ async function execute(message, serverQueue) {
     );
   }
 
-  const songInfo = await ytdl.getInfo(args[1]);
+  const urlArg = args[1];
+  const isUrlPrefix = validUrlPrefixes.reduce((acc, val) => {
+      return acc || urlArg.startsWith(val)
+  }, false);
+  const songId = isUrlPrefix ? ytdl.getURLVideoID(urlArg) : urlArg;
+  const songInfo = await ytdl.getInfo(songId);
   const song = {
         title: songInfo.videoDetails.title,
         url: songInfo.videoDetails.video_url,
