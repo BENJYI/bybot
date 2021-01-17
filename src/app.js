@@ -26,7 +26,10 @@ client.on("message", async message => {
   if (message.author.bot) return;
   if (!message.content.startsWith(prefix)) return;
 
-  if (message.content.startsWith(`${prefix}play`)) {
+  if (message.content.startsWith(`${prefix}join`)) {
+    await player.join(message, queue);
+    return;
+  } else if (message.content.startsWith(`${prefix}play`)) {
     player.execute(message, queue);
     return;
   } else if (message.content.startsWith(`${prefix}skip`)) {

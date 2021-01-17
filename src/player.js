@@ -10,6 +10,45 @@ module.exports = class Player {
     ]
   }
 
+  async join(message, queue) {
+    const voiceChannel = message.member.voice.channel;
+
+    if (!voiceChannel) {
+      return message.channel.send("You need to be in a voice channel to play music!")
+    }
+
+    const permissions = voiceChannel.permissionsFor(message.client.user);
+
+    if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+      return message.channel.send("I need the permissions to join and speak in your voice channel!");
+    }
+
+    const serverQueue = queue.get(message.guild.id);
+
+    if (!serverQueue) {
+      const queueConstruct = {
+        textChannel: message.channel,
+        voiceChannel: voiceChannel,
+        connection: null,
+        songs: [],
+        volume: 5,
+        playing: true
+      }
+
+      queue.set(message.guild.id, queueConstruct);
+
+      try {
+        var connection = await voiceChannel.join();
+        queueConstruct.connection = connection;
+        console.log(queueConstruct);
+      } catch (err) {
+        console.log(err);
+        queue.delete(message.guild.id);
+        return message.channel.send(err);
+      }
+    }
+  }
+
   async execute(message, queue) {
     const args = message.content.split(/[ ]+/);
     const urlArg = args[1];
@@ -102,7 +141,7 @@ module.exports = class Player {
       .play(ytdl(song.url))
       .on("finish", () => {
         serverQueue.songs.shift();
-        play(guild, serverQueue.songs[0]);
+        play(guild, serverQueue.songs[0], queue);
       })
       .on("error", error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
