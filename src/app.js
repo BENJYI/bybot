@@ -1,6 +1,7 @@
 require('dotenv').config();
-const Discord = require("discord.js");
-const player = require('./player.js');
+const Discord = require('discord.js');
+const Player = require('./player.js');
+const player = new Player();
 const client = new Discord.Client();
 const queue = new Map();
 
