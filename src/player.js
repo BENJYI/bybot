@@ -105,4 +105,13 @@ module.exports = class Player {
     serverQueue.songs = [];
     serverQueue.connection.dispatcher.end();
   }
+
+  leave(message, queue) {
+    if (!message.member.voice.channel)
+      return message.channel.send(
+        "You have to be in a voice channel to stop the music!"
+      );
+    const serverQueue = queue.get(message.guild.id);
+    serverQueue.voiceChannel.leave();
+  }
 }

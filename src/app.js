@@ -38,6 +38,9 @@ client.on("message", async message => {
   } else if (message.content.startsWith(`${prefix}stop`)) {
     player.stop(message, queue);
     return;
+  } else if (message.content.startsWith(`${prefix}leave`)) {
+    player.leave(message, queue);
+    return;
   } else {
     message.channel.send("You need to enter a valid command!");
   }
