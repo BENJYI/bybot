@@ -40,7 +40,6 @@ module.exports = class Player {
       try {
         var connection = await voiceChannel.join();
         queueConstruct.connection = connection;
-        console.log(queueConstruct);
       } catch (err) {
         console.log(err);
         queue.delete(message.guild.id);
