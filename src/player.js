@@ -135,6 +135,25 @@ module.exports = class Player {
     ));
   }
 
+  remove(message) {
+    const args = message.content.split(/[ ]+/);
+    const indexArg = args[1];
+    if (isNaN(indexArg)) {
+      return;
+    }
+    const index = parseInt(indexArg) - 1;
+    const contract = this.queue.get(message.guild.id);
+    if (index < 0 || index >= contract.songs.length) {
+      return;
+    }
+    if (index === 0) {
+      this.skip(message);
+      return;
+    }
+    const deletedSong = contract.songs.splice(index, 1)[0];
+    return message.channel.send(`${indexArg}. ${deletedSong.title} has been removed!`);
+  }
+
   leave(message) {
     const contract = this.queue.get(message.guild.id);
     contract.voiceChannel.leave();
