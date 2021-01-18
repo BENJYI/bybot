@@ -44,6 +44,8 @@ client.on("message", async message => {
     } else if (message.content.startsWith(`${prefix}leave`)) {
       player.leave(message);
       return;
+    } else if (message.content.startsWith(`${prefix}queue`)) {
+      player.showQueue(message);
     } else {
       message.channel.send("You need to enter a valid command!");
     }

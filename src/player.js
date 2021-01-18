@@ -112,6 +112,18 @@ module.exports = class Player {
     }
   }
 
+  showQueue(message) {
+    const contract = this.queue.get(message.guild.id);
+    const songs = contract.songs;
+
+    if (songs.length === 0) {
+      return message.channel.send(`There's nothing on this playlist!!`)
+    }
+    return message.channel.send(songs.map((song, index) =>
+      `${index + 1}. ${song.title}`
+    ));
+  }
+
   leave(message) {
     const contract = this.queue.get(message.guild.id);
     contract.voiceChannel.leave();
