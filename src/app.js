@@ -30,7 +30,7 @@ client.on("message", async message => {
     await player.join(message, queue);
     return;
   } else if (message.content.startsWith(`${prefix}play`)) {
-    player.play(message, queue);
+    player.execute(message, queue);
     return;
   } else if (message.content.startsWith(`${prefix}skip`)) {
     player.skip(message, queue);

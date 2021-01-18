@@ -51,7 +51,7 @@ module.exports = class Player {
     }
   }
 
-  async play(message, queue) {
+  async execute(message, queue) {
     const args = message.content.split(/[ ]+/);
     const urlArg = args[1];
     const serverQueue = queue.get(message.guild.id);
@@ -67,18 +67,31 @@ module.exports = class Player {
     };
 
     serverQueue.songs.push(song);
-    serverQueue.playing = true;
+    if (!serverQueue.playing) {
+      this.play(message, queue);
+    }
+
+    return message.channel.send(`${song.title} has been added to the queue!`);
+  }
+
+  play(message, queue) {
+    const serverQueue = queue.get(message.guild.id);
+    if (serverQueue.songs.length === 0) {
+      serverQueue.playing = false;
+      return
+    }
+
+    const song = serverQueue.songs[0];
     const dispatcher = serverQueue.connection
       .play(ytdl(song.url))
       .on("finish", () => {
         serverQueue.songs.shift();
-        if (serverQueue.songs.length > 0)
-          this.play(message, queue);
+        this.play(message, queue);
       })
       .on("error", error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
     serverQueue.textChannel.send(`Start playing: **${song.title}**`);
-    return message.channel.send(`${song.title} has been added to the queue!`);
+    serverQueue.playing = true;
   }
 
   skip(message, queue) {
@@ -89,6 +102,7 @@ module.exports = class Player {
       );
     if (!serverQueue)
       return message.channel.send("There is no song that I could skip!");
+    serverQueue.playing = false;
     serverQueue.connection.dispatcher.end();
   }
 
@@ -103,6 +117,7 @@ module.exports = class Player {
       return message.channel.send("There is no song that I could stop!");
 
     serverQueue.songs = [];
+    serverQueue.playing = false;
     serverQueue.connection.dispatcher.end();
   }
 
