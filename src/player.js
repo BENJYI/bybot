@@ -8,9 +8,10 @@ module.exports = class Player {
       "www.youtube.com",
       "youtube.com"
     ]
+    this.queue = new Map();
   }
 
-  async join(message, queue) {
+  async join(message) {
     const voiceChannel = message.member.voice.channel;
 
     if (!voiceChannel) {
@@ -23,10 +24,10 @@ module.exports = class Player {
       return message.channel.send("I need the permissions to join and speak in your voice channel!");
     }
 
-    let serverQueue = queue.get(message.guild.id);
+    let contract = this.queue.get(message.guild.id);
 
-    if (!serverQueue) {
-      serverQueue = {
+    if (!contract) {
+      contract = {
         textChannel: message.channel,
         voiceChannel: voiceChannel,
         connection: null,
@@ -35,26 +36,26 @@ module.exports = class Player {
         playing: false
       }
 
-      queue.set(message.guild.id, serverQueue);
+      this.queue.set(message.guild.id, contract);
     }
 
-    serverQueue.voiceChannel = voiceChannel;
-    serverQueue.textChannel = message.channel;
+    contract.voiceChannel = voiceChannel;
+    contract.textChannel = message.channel;
 
     try {
       var connection = await voiceChannel.join();
-      serverQueue.connection = connection;
+      contract.connection = connection;
     } catch (err) {
       console.log(err);
-      queue.delete(message.guild.id);
+      this.queue.delete(message.guild.id);
       return message.channel.send(err);
     }
   }
 
-  async execute(message, queue) {
+  async execute(message) {
     const args = message.content.split(/[ ]+/);
     const urlArg = args[1];
-    const serverQueue = queue.get(message.guild.id);
+    const contract = this.queue.get(message.guild.id);
 
     const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => {
       return acc || urlArg.startsWith(val)
@@ -66,67 +67,67 @@ module.exports = class Player {
       url: songInfo.videoDetails.video_url,
     };
 
-    serverQueue.songs.push(song);
-    if (!serverQueue.playing) {
-      this.play(message, queue);
+    contract.songs.push(song);
+    if (!contract.playing) {
+      this.play(message);
     }
 
     return message.channel.send(`${song.title} has been added to the queue!`);
   }
 
-  play(message, queue) {
-    const serverQueue = queue.get(message.guild.id);
-    if (serverQueue.songs.length === 0) {
-      serverQueue.playing = false;
+  play(message) {
+    const contract = this.queue.get(message.guild.id);
+    if (contract.songs.length === 0) {
+      contract.playing = false;
       return
     }
 
-    const song = serverQueue.songs[0];
-    const dispatcher = serverQueue.connection
+    const song = contract.songs[0];
+    const dispatcher = contract.connection
       .play(ytdl(song.url))
       .on("finish", () => {
-        serverQueue.songs.shift();
-        this.play(message, queue);
+        contract.songs.shift();
+        this.play(message);
       })
       .on("error", error => console.error(error));
-    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-    serverQueue.textChannel.send(`Start playing: **${song.title}**`);
-    serverQueue.playing = true;
+    dispatcher.setVolumeLogarithmic(contract.volume / 5);
+    contract.textChannel.send(`Start playing: **${song.title}**`);
+    contract.playing = true;
   }
 
-  skip(message, queue) {
-    const serverQueue = queue.get(message.guild.id);
+  skip(message) {
+    const contract = this.queue.get(message.guild.id);
     if (!message.member.voice.channel)
       return message.channel.send(
         "You have to be in a voice channel to stop the music!"
       );
-    if (!serverQueue)
+    if (!contract)
       return message.channel.send("There is no song that I could skip!");
-    serverQueue.playing = false;
-    serverQueue.connection.dispatcher.end();
+    contract.playing = false;
+    contract.connection.dispatcher.end();
   }
 
-  stop(message, queue) {
-    const serverQueue = queue.get(message.guild.id);
+  stop(message) {
+    const contract = this.queue.get(message.guild.id);
     if (!message.member.voice.channel)
       return message.channel.send(
         "You have to be in a voice channel to stop the music!"
       );
 
-    if (!serverQueue)
+    if (!contract)
       return message.channel.send("There is no song that I could stop!");
 
-    serverQueue.songs = [];
-    serverQueue.playing = false;
-    serverQueue.connection.dispatcher.end();
+    contract.songs = [];
+    contract.playing = false;
+    contract.connection.dispatcher.end();
   }
 
-  leave(message, queue) {
+  leave(message) {
     if (!message.member.voice.channel)
       return message.channel.send(
         "You have to be in a voice channel to stop the music!"
       );
-    const serverQueue = queue.get(message.guild.id);
-    serverQueue.voiceChannel.leave();
+    const contract = this.queue.get(message.guild.id);
+    contract.voiceChannel.leave();
   }
 }

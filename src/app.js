@@ -3,7 +3,6 @@ const Discord = require('discord.js');
 const Player = require('./player.js');
 const player = new Player();
 const client = new Discord.Client();
-const queue = new Map();
 
 const {
   prefix,
@@ -27,19 +26,19 @@ client.on("message", async message => {
   if (!message.content.startsWith(prefix)) return;
 
   if (message.content.startsWith(`${prefix}join`)) {
-    await player.join(message, queue);
+    await player.join(message);
     return;
   } else if (message.content.startsWith(`${prefix}play`)) {
-    player.execute(message, queue);
+    player.execute(message);
     return;
   } else if (message.content.startsWith(`${prefix}skip`)) {
-    player.skip(message, queue);
+    player.skip(message);
     return;
   } else if (message.content.startsWith(`${prefix}stop`)) {
-    player.stop(message, queue);
+    player.stop(message);
     return;
   } else if (message.content.startsWith(`${prefix}leave`)) {
-    player.leave(message, queue);
+    player.leave(message);
     return;
   } else {
     message.channel.send("You need to enter a valid command!");
