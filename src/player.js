@@ -1,4 +1,5 @@
 const ytdl = require("ytdl-core");
+const ytsr = require("ytsr");
 
 module.exports = class Player {
   constructor() {
@@ -56,11 +57,19 @@ module.exports = class Player {
     const args = message.content.split(/[ ]+/);
     const urlArg = args[1];
     const contract = this.queue.get(message.guild.id);
+    let url = "";
 
     const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => {
       return acc || urlArg.startsWith(val)
     }, false);
-    const songId = isUrlPrefix ? ytdl.getURLVideoID(urlArg) : urlArg;
+
+    if (isUrlPrefix) {
+      url = urlArg;
+    } else {
+      url = await ytsr(urlArg, { limit: 1 }).then((res) => res.items[0].url);
+    }
+
+    const songId = ytdl.getURLVideoID(url);
     const songInfo = await ytdl.getInfo(songId);
     const song = {
       title: songInfo.videoDetails.title,
