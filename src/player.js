@@ -97,36 +97,22 @@ module.exports = class Player {
 
   skip(message) {
     const contract = this.queue.get(message.guild.id);
-    if (!message.member.voice.channel)
-      return message.channel.send(
-        "You have to be in a voice channel to stop the music!"
-      );
-    if (!contract)
-      return message.channel.send("There is no song that I could skip!");
-    contract.playing = false;
-    contract.connection.dispatcher.end();
+    if (contract) {
+      contract.playing = false;
+      contract.connection.dispatcher.end();
+    }
   }
 
   stop(message) {
     const contract = this.queue.get(message.guild.id);
-    if (!message.member.voice.channel)
-      return message.channel.send(
-        "You have to be in a voice channel to stop the music!"
-      );
-
-    if (!contract)
-      return message.channel.send("There is no song that I could stop!");
-
-    contract.songs = [];
-    contract.playing = false;
-    contract.connection.dispatcher.end();
+    if (contract) {
+      contract.songs = [];
+      contract.playing = false;
+      contract.connection.dispatcher.end();
+    }
   }
 
   leave(message) {
-    if (!message.member.voice.channel)
-      return message.channel.send(
-        "You have to be in a voice channel to stop the music!"
-      );
     const contract = this.queue.get(message.guild.id);
     contract.voiceChannel.leave();
   }

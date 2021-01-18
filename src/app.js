@@ -28,20 +28,25 @@ client.on("message", async message => {
   if (message.content.startsWith(`${prefix}join`)) {
     await player.join(message);
     return;
-  } else if (message.content.startsWith(`${prefix}play`)) {
-    player.execute(message);
-    return;
-  } else if (message.content.startsWith(`${prefix}skip`)) {
-    player.skip(message);
-    return;
-  } else if (message.content.startsWith(`${prefix}stop`)) {
-    player.stop(message);
-    return;
-  } else if (message.content.startsWith(`${prefix}leave`)) {
-    player.leave(message);
-    return;
   } else {
-    message.channel.send("You need to enter a valid command!");
+    if (!message.member.voice.channel) {
+      return message.channel.send("You have to be in a voice channel!");
+    }
+    if (message.content.startsWith(`${prefix}play`)) {
+      player.execute(message);
+      return;
+    } else if (message.content.startsWith(`${prefix}skip`)) {
+      player.skip(message);
+      return;
+    } else if (message.content.startsWith(`${prefix}stop`)) {
+      player.stop(message);
+      return;
+    } else if (message.content.startsWith(`${prefix}leave`)) {
+      player.leave(message);
+      return;
+    } else {
+      message.channel.send("You need to enter a valid command!");
+    }
   }
 });
 
