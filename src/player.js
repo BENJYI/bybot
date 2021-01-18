@@ -55,18 +55,19 @@ module.exports = class Player {
 
   async execute(message) {
     const args = message.content.split(/[ ]+/);
-    const urlArg = args[1];
+    const option = args[1];
     const contract = this.queue.get(message.guild.id);
     let url = "";
 
     const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => {
-      return acc || urlArg.startsWith(val)
+      return acc || option.startsWith(val)
     }, false);
 
     if (isUrlPrefix) {
-      url = urlArg;
+      url = option;
     } else {
-      url = await ytsr(urlArg, { limit: 1 }).then((res) => res.items[0].url);
+      const searchQuery = args.slice(1).join(' ');
+      url = await ytsr(searchQuery, { limit: 1 }).then((res) => res.items[0].url);
     }
 
     const songId = ytdl.getURLVideoID(url);
@@ -109,6 +110,7 @@ module.exports = class Player {
     if (contract) {
       contract.playing = false;
       contract.connection.dispatcher.end();
+      return message.channel.send(`Skipped!!`);
     }
   }
 
