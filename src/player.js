@@ -23,10 +23,10 @@ module.exports = class Player {
       return message.channel.send("I need the permissions to join and speak in your voice channel!");
     }
 
-    const serverQueue = queue.get(message.guild.id);
+    let serverQueue = queue.get(message.guild.id);
 
     if (!serverQueue) {
-      const queueConstruct = {
+      serverQueue = {
         textChannel: message.channel,
         voiceChannel: voiceChannel,
         connection: null,
@@ -35,16 +35,19 @@ module.exports = class Player {
         playing: false
       }
 
-      queue.set(message.guild.id, queueConstruct);
+      queue.set(message.guild.id, serverQueue);
+    }
 
-      try {
-        var connection = await voiceChannel.join();
-        queueConstruct.connection = connection;
-      } catch (err) {
-        console.log(err);
-        queue.delete(message.guild.id);
-        return message.channel.send(err);
-      }
+    serverQueue.voiceChannel = voiceChannel;
+    serverQueue.textChannel = message.channel;
+
+    try {
+      var connection = await voiceChannel.join();
+      serverQueue.connection = connection;
+    } catch (err) {
+      console.log(err);
+      queue.delete(message.guild.id);
+      return message.channel.send(err);
     }
   }
 
