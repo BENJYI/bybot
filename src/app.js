@@ -25,32 +25,28 @@ client.on("message", async message => {
   if (message.author.bot) return;
   if (!message.content.startsWith(prefix)) return;
 
+  const voiceChannel = message.member.voice.channel;
+
+  if (!message.member.voice.channel) {
+    return message.channel.send("You have to be in a voice channel!");
+  }
+
   if (message.content.startsWith(`${prefix}join`)) {
     await player.join(message);
-    return;
+  } else if (message.content.startsWith(`${prefix}play`)) {
+    player.execute(message);
+  } else if (message.content.startsWith(`${prefix}skip`)) {
+    player.skip(message);
+  } else if (message.content.startsWith(`${prefix}stop`)) {
+    player.stop(message);
+  } else if (message.content.startsWith(`${prefix}leave`)) {
+    player.leave(message);
+  } else if (message.content.startsWith(`${prefix}queue`)) {
+    player.showQueue(message);
+  } else if (message.content.startsWith(`${prefix}remove`)) {
+    player.remove(message);
   } else {
-    if (!message.member.voice.channel) {
-      return message.channel.send("You have to be in a voice channel!");
-    }
-    if (message.content.startsWith(`${prefix}play`)) {
-      player.execute(message);
-      return;
-    } else if (message.content.startsWith(`${prefix}skip`)) {
-      player.skip(message);
-      return;
-    } else if (message.content.startsWith(`${prefix}stop`)) {
-      player.stop(message);
-      return;
-    } else if (message.content.startsWith(`${prefix}leave`)) {
-      player.leave(message);
-      return;
-    } else if (message.content.startsWith(`${prefix}queue`)) {
-      player.showQueue(message);
-    } else if (message.content.startsWith(`${prefix}remove`)) {
-      player.remove(message);
-    } else {
-      message.channel.send("You need to enter a valid command!");
-    }
+    message.channel.send("You need to enter a valid command!");
   }
 });
 
