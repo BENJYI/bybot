@@ -48,13 +48,18 @@ module.exports = class Player {
       this.queue.delete(message.guild.id);
       return message.channel.send(err);
     }
+    return contract;
   }
 
   async execute(message) {
     const args = message.content.split(/[ ]+/);
     const option = args[1];
-    const contract = this.queue.get(message.guild.id);
+    let contract = this.queue.get(message.guild.id);
     let url = "";
+
+    if (!contract) {
+      contract = await this.join(message);
+    }
 
     if (contract.connection.dispatcher) {
       this.resume(message);
@@ -97,6 +102,7 @@ module.exports = class Player {
 
   play(message) {
     const contract = this.queue.get(message.guild.id);
+
     if (contract.songs.length === 0) {
       contract.playing = false;
       return
