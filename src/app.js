@@ -39,8 +39,6 @@ client.on("message", async message => {
     player.skip(message);
   } else if (message.content.startsWith(`${prefix}pause`)) {
     player.pause(message);
-  } else if (message.content.startsWith(`${prefix}resume`)) {
-    player.resume(message);
   } else if (message.content.startsWith(`${prefix}stop`)) {
     player.stop(message);
   } else if (message.content.startsWith(`${prefix}leave`)) {

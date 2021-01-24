@@ -137,18 +137,6 @@ module.exports = class Player {
     }
   }
 
-  resume(message) {
-    try {
-      const contract = this.queue.get(message.guild.id);
-      if (contract && !contract.playing) {
-        contract.playing = true;
-        contract.connection.dispatcher.resume();
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   stop(message) {
     const contract = this.queue.get(message.guild.id);
     if (contract) {
