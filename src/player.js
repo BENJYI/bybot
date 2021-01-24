@@ -1,5 +1,7 @@
 const ytdl = require("ytdl-core");
-const ytsr = require("ytsr");
+const { YTSearcher } = require('ytsearcher');
+const { ytapikey } = require('./configuration/config.json');
+const searcher = new YTSearcher(ytapikey);
 
 module.exports = class Player {
   constructor() {
@@ -67,7 +69,12 @@ module.exports = class Player {
       url = option;
     } else {
       const searchQuery = args.slice(1).join(' ');
-      url = await ytsr(searchQuery, { limit: 1 }).then((res) => res.items[0].url);
+      const searchParams = {
+        type: 'video',
+        maxResults: 1
+      }
+      url = await searcher.search(searchQuery, searchParams)
+        .then(res => res.first.url);
     }
 
     const songId = ytdl.getURLVideoID(url);
