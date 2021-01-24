@@ -56,6 +56,14 @@ module.exports = class Player {
     const contract = this.queue.get(message.guild.id);
     let url = "";
 
+    if (contract.connection.dispatcher) {
+      this.resume(message);
+    }
+
+    if (!option || option.trim().length === 0) {
+      return;
+    }
+
     const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => {
       return acc || option.startsWith(val)
     }, false);
