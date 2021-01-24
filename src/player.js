@@ -114,6 +114,7 @@ module.exports = class Player {
       .playStream(ytdl(song.url, { quality: "highestaudio" }))
       .on("finish", () => {
         contract.songs.shift();
+      .on("end", () => {
         this.play(message);
       })
       .on("error", error => console.error(error));
