@@ -25,9 +25,9 @@ client.on("message", async message => {
   if (message.author.bot) return;
   if (!message.content.startsWith(prefix)) return;
 
-  const voiceChannel = message.member.voice.channel;
+  const voiceChannel = message.member.voiceChannel;
 
-  if (!message.member.voice.channel) {
+  if (!voiceChannel) {
     return message.channel.send("You have to be in a voice channel!");
   }
 
@@ -37,6 +37,10 @@ client.on("message", async message => {
     player.execute(message);
   } else if (message.content.startsWith(`${prefix}skip`)) {
     player.skip(message);
+  } else if (message.content.startsWith(`${prefix}pause`)) {
+    player.pause(message);
+  } else if (message.content.startsWith(`${prefix}resume`)) {
+    player.resume(message);
   } else if (message.content.startsWith(`${prefix}stop`)) {
     player.stop(message);
   } else if (message.content.startsWith(`${prefix}leave`)) {

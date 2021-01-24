@@ -15,7 +15,7 @@ module.exports = class Player {
   }
 
   async join(message) {
-    const voiceChannel = message.member.voice.channel;
+    const voiceChannel = message.member.voiceChannel;
     const permissions = voiceChannel.permissionsFor(message.client.user);
 
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
@@ -95,8 +95,9 @@ module.exports = class Player {
     }
 
     const song = contract.songs[0];
+
     const dispatcher = contract.connection
-      .play(ytdl(song.url))
+      .playStream(ytdl(song.url, { quality: "highestaudio" }))
       .on("finish", () => {
         contract.songs.shift();
         this.play(message);
@@ -113,6 +114,30 @@ module.exports = class Player {
       contract.playing = false;
       contract.connection.dispatcher.end();
       return message.channel.send(`Skipped!!`);
+    }
+  }
+
+  pause(message) {
+    try {
+      const contract = this.queue.get(message.guild.id);
+      if (contract && contract.playing) {
+        contract.playing = false;
+        contract.connection.dispatcher.pause();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  resume(message) {
+    try {
+      const contract = this.queue.get(message.guild.id);
+      if (contract && !contract.playing) {
+        contract.playing = true;
+        contract.connection.dispatcher.resume();
+      }
+    } catch (err) {
+      console.log(err);
     }
   }
 
