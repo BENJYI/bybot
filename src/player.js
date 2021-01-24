@@ -22,10 +22,10 @@ module.exports = class Player {
       return message.channel.send("I need the permissions to join and speak in your voice channel!");
     }
 
-    let contract = this.queue.get(message.guild.id);
+    let queueConstruct = this.queue.get(message.guild.id);
 
-    if (!contract) {
-      contract = {
+    if (!queueConstruct) {
+      queueConstruct = {
         textChannel: message.channel,
         voiceChannel: voiceChannel,
         connection: null,
@@ -34,44 +34,34 @@ module.exports = class Player {
         playing: false
       }
 
-      this.queue.set(message.guild.id, contract);
+      this.queue.set(message.guild.id, queueConstruct);
     }
 
-    contract.voiceChannel = voiceChannel;
-    contract.textChannel = message.channel;
+    queueConstruct.voiceChannel = voiceChannel;
+    queueConstruct.textChannel = message.channel;
 
     try {
       var connection = await voiceChannel.join();
-      contract.connection = connection;
+      queueConstruct.connection = connection;
     } catch (err) {
       console.log(err);
       this.queue.delete(message.guild.id);
       return message.channel.send(err);
     }
-    return contract;
+    return queueConstruct;
   }
 
   async execute(message) {
     const args = message.content.split(/[ ]+/);
     const option = args[1];
-    let contract = this.queue.get(message.guild.id);
+    let queueConstruct = this.queue.get(message.guild.id);
     let url = "";
 
-    if (!contract) {
-      contract = await this.join(message);
-    }
+    if (!queueConstruct) queueConstruct = await this.join(message);
+    if (queueConstruct.connection.dispatcher) this.resume(message);
+    if (!option || option.trim().length === 0) return;
 
-    if (contract.connection.dispatcher) {
-      this.resume(message);
-    }
-
-    if (!option || option.trim().length === 0) {
-      return;
-    }
-
-    const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => {
-      return acc || option.startsWith(val)
-    }, false);
+    const isUrlPrefix = this.validUrlPrefixes.reduce((acc, val) => acc || option.startsWith(val), false);
 
     if (isUrlPrefix) {
       url = option;
@@ -81,8 +71,7 @@ module.exports = class Player {
         type: 'video',
         maxResults: 1
       }
-      url = await searcher.search(searchQuery, searchParams)
-        .then(res => res.first.url);
+      url = await searcher.search(searchQuery, searchParams).then(res => res.first.url);
     }
 
     const songId = ytdl.getURLVideoID(url);
@@ -92,8 +81,8 @@ module.exports = class Player {
       url: songInfo.videoDetails.video_url,
     };
 
-    contract.songs.push(song);
-    if (!contract.playing) {
+    queueConstruct.songs.push(song);
+    if (!queueConstruct.playing) {
       this.play(message);
     }
 
@@ -101,33 +90,32 @@ module.exports = class Player {
   }
 
   play(message) {
-    const contract = this.queue.get(message.guild.id);
+    const queueConstruct = this.queue.get(message.guild.id);
 
-    if (contract.songs.length === 0) {
-      contract.playing = false;
+    if (queueConstruct.songs.length === 0) {
+      queueConstruct.playing = false;
       return
     }
 
-    const song = contract.songs[0];
+    const song = queueConstruct.songs[0];
 
-    const dispatcher = contract.connection
+    const dispatcher = queueConstruct.connection
       .playStream(ytdl(song.url, { quality: "highestaudio" }))
-      .on("finish", () => {
-        contract.songs.shift();
       .on("end", () => {
+        queueConstruct.songs.shift();
         this.play(message);
       })
       .on("error", error => console.error(error));
-    dispatcher.setVolumeLogarithmic(contract.volume / 5);
-    contract.textChannel.send(`Start playing: **${song.title}**`);
-    contract.playing = true;
+    dispatcher.setVolumeLogarithmic(queueConstruct.volume / 5);
+    queueConstruct.textChannel.send(`Start playing: **${song.title}**`);
+    queueConstruct.playing = true;
   }
 
   skip(message) {
-    const contract = this.queue.get(message.guild.id);
-    if (contract) {
-      contract.playing = false;
-      contract.connection.dispatcher.end();
+    const queueConstruct = this.queue.get(message.guild.id);
+    if (queueConstruct) {
+      queueConstruct.playing = false;
+      queueConstruct.connection.dispatcher.end();
       return message.channel.send(`Skipped!!`);
     }
   }
@@ -149,17 +137,17 @@ module.exports = class Player {
   }
 
   stop(message) {
-    const contract = this.queue.get(message.guild.id);
-    if (contract) {
-      contract.songs = [];
-      contract.playing = false;
-      contract.connection.dispatcher.end();
+    const queueConstruct = this.queue.get(message.guild.id);
+    if (queueConstruct) {
+      queueConstruct.songs = [];
+      queueConstruct.playing = false;
+      queueConstruct.connection.dispatcher.end();
     }
   }
 
   showQueue(message) {
-    const contract = this.queue.get(message.guild.id);
-    const songs = contract.songs;
+    const queueConstruct = this.queue.get(message.guild.id);
+    const songs = queueConstruct.songs;
 
     if (songs.length === 0) {
       return message.channel.send(`There's nothing on this playlist!!`)
@@ -176,20 +164,20 @@ module.exports = class Player {
       return;
     }
     const index = parseInt(indexArg) - 1;
-    const contract = this.queue.get(message.guild.id);
-    if (index < 0 || index >= contract.songs.length) {
+    const queueConstruct = this.queue.get(message.guild.id);
+    if (index < 0 || index >= queueConstruct.songs.length) {
       return;
     }
     if (index === 0) {
       this.skip(message);
       return;
     }
-    const deletedSong = contract.songs.splice(index, 1)[0];
+    const deletedSong = queueConstruct.songs.splice(index, 1)[0];
     return message.channel.send(`${indexArg}. ${deletedSong.title} has been removed!`);
   }
 
   leave(message) {
-    const contract = this.queue.get(message.guild.id);
-    contract.voiceChannel.leave();
+    const queueConstruct = this.queue.get(message.guild.id);
+    queueConstruct.voiceChannel.leave();
   }
 }
